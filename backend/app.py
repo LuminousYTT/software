@@ -18,8 +18,8 @@ CORS(app, resources={r"/api/*": {"origins": "*"}})
 DB_HOST = os.getenv("DB_HOST", "127.0.0.1")
 DB_PORT = int(os.getenv("DB_PORT", "3306"))
 DB_USER = os.getenv("DB_USER", "root")
-DB_PASSWORD = os.getenv("DB_PASSWORD", "")
-DB_NAME = os.getenv("DB_NAME", "greenpoints")
+DB_PASSWORD = os.getenv("DB_PASSWORD", "9860")
+DB_NAME = os.getenv("DB_NAME", "green")
 DB_CREATE_DB = os.getenv("DB_CREATE_DB", "0") == "1"
 
 # token -> uid 映射（内存会话管理）
