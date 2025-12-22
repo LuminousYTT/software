@@ -95,7 +95,7 @@
 					<div class="form-row">
 						<div class="form-group">
 							<label>交通方式</label>
-							<select required>
+							<select id="mode" required>
 								<option value="">请选择</option>
 								<option value="bike">共享单车</option>
 								<option value="walk">步行</option>
@@ -106,7 +106,7 @@
 						</div>
 						<div class="form-group">
 							<label>距离 (km)</label>
-							<input type="number" min="0.1" step="0.1" placeholder="如 3.5" required />
+							<input id="distance" type="number" min="0.1" step="0.1" placeholder="如 3.5" required />
 						</div>
 					</div>
 					<button type="submit">提交行程</button>
@@ -116,7 +116,7 @@
 			<!-- 积分明细 -->
 			<div class="card" id="points">
 				<h3>📊 积分明细</h3>
-				<p>当前总积分：<strong id="total-points" class="points">245</strong></p>
+				<p>当前总积分：<strong id="total-points" class="points">0</strong></p>
 				<table>
 					<thead>
 						<tr>
@@ -153,9 +153,9 @@
 			<!-- 积分商城 -->
 			<div class="card" id="shop">
 				<h3>🎁 积分商城</h3>
-				<p>可用积分：<strong id="available-points" class="points">245</strong></p>
+				<p>可用积分：<strong id="available-points" class="points">0</strong></p>
 				<div class="shop-grid">
-					<div class="product">
+					<div class="product" data-product-name="共享单车月卡" data-required-points="200">
 						<div class="product-img">🚲</div>
 						<div class="product-info">
 							<h4>共享单车月卡</h4>
@@ -165,7 +165,7 @@
 							<button class="redeem-btn">立即兑换</button>
 						</div>
 					</div>
-					<div class="product">
+					<div class="product" data-product-name="环保咖啡券" data-required-points="150">
 						<div class="product-img">☕</div>
 						<div class="product-info">
 							<h4>环保咖啡券</h4>
@@ -175,7 +175,7 @@
 							<button class="redeem-btn">立即兑换</button>
 						</div>
 					</div>
-					<div class="product">
+					<div class="product" data-product-name="绿植盆栽" data-required-points="80">
 						<div class="product-img">🌱</div>
 						<div class="product-info">
 							<h4>绿植盆栽</h4>
