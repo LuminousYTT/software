@@ -83,10 +83,14 @@
 			items.forEach(item => {
 				const card = document.createElement('div');
 				card.className = 'product';
+				const actionText = item.action === 'offline' ? '下架申请' : '上架申请';
+				const targetText = item.action === 'offline' ? `目标商品ID：${item.targetGid || '-'}
+` : '';
 				card.innerHTML = `
                     <div class="product-img">📦</div>
                     <div class="product-info">
-                        <h4>${item.name || '未命名商品'}</h4>
+                        <h4>${item.name || '未命名商品'} <span style="font-size:0.9rem;color:#2e7d32;">(${actionText})</span></h4>
+                        <p>商户：${item.sid || '-'} ${targetText}</p>
                         <p>数量：${item.count ?? 0}</p>
                         <div class="price">价值：${item.value ?? 0} 积分</div>
                         <div style="display:flex; gap: 0.5rem; margin-top: 0.8rem;">

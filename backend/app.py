@@ -24,10 +24,16 @@ DB_CREATE_DB = os.getenv("DB_CREATE_DB", "0") == "1"
 
 # token -> uid 映射（内存会话管理）
 tokens = {}
+# 商户与管理员会话
+shop_tokens = {}
+admin_tokens = {}
 
 # 出行方式与积分倍率（与前端保持一致，且与 points.movement 的枚举匹配）
 RATE_BY_MODE = {"bike": 3, "walk": 3, "bus": 1.5, "metro": 1.5, "ev": 1}
 MODE_EN_TO_CN = {"bike": "骑行", "walk": "步行", "bus": "公交出行", "metro": "地铁出行", "ev": "公交出行"}
+
+ADMIN_USER = os.getenv("ADMIN_USER", "admin")
+ADMIN_PASS = os.getenv("ADMIN_PASS", "123456")
 
 
 def _connect(database: str | None = None):
@@ -121,12 +127,31 @@ def ensure_database_and_tables():
         """
     )
 
+    ddl_goods_requests = (
+        """
+        CREATE TABLE IF NOT EXISTS `goods_requests` (
+            id BIGINT AUTO_INCREMENT PRIMARY KEY,
+            sid CHAR(10),
+            gname CHAR(50),
+            count INT,
+            `value` INT,
+            action ENUM('add','offline'),
+            target_gid INT NULL,
+            status ENUM('pending','approved','rejected') DEFAULT 'pending',
+            approved_gid INT NULL,
+            created_at DATETIME,
+            FOREIGN KEY (sid) REFERENCES `shop`(sid)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+        """
+    )
+
     with db_conn() as conn:
         with conn.cursor() as cur:
             cur.execute(ddl_user)
             cur.execute(ddl_shop)
             cur.execute(ddl_points)
             cur.execute(ddl_goods)
+            cur.execute(ddl_goods_requests)
 
 
 def migrate_points_table():
@@ -159,6 +184,27 @@ def get_token_from_auth_header():
     if auth.startswith("Bearer "):
         return auth.split(" ", 1)[1].strip()
     return None
+
+
+def require_user_token():
+    token = get_token_from_auth_header()
+    if not token or token not in tokens:
+        return None
+    return tokens[token]
+
+
+def require_shop_token():
+    token = get_token_from_auth_header()
+    if not token or token not in shop_tokens:
+        return None
+    return shop_tokens[token]
+
+
+def require_admin_token():
+    token = get_token_from_auth_header()
+    if not token or token not in admin_tokens:
+        return None
+    return admin_tokens[token]
 
 
 @app.post("/api/register")
@@ -223,10 +269,9 @@ def login():
 
 @app.get("/api/me")
 def me():
-    token = get_token_from_auth_header()
-    if not token or token not in tokens:
+    username = require_user_token()
+    if not username:
         return jsonify({"error": "未授权"}), 401
-    username = tokens[token]
     try:
         with db_conn() as conn:
             with conn.cursor() as cur:
@@ -242,10 +287,9 @@ def me():
 
 @app.get("/api/points")
 def list_points():
-    token = get_token_from_auth_header()
-    if not token or token not in tokens:
+    username = require_user_token()
+    if not username:
         return jsonify({"error": "未授权"}), 401
-    username = tokens[token]
     try:
         with db_conn() as conn:
             with conn.cursor() as cur:
@@ -296,12 +340,222 @@ def list_goods():
         return jsonify({"error": f"查询商品失败: {e}"}), 500
 
 
+############################################
+# 商户登录/注册与商品提交、下架申请
+############################################
+
+
+@app.post("/api/merchant/register")
+def merchant_register():
+    data = request.get_json(silent=True) or {}
+    sid = (data.get("sid") or "").strip()
+    sname = (data.get("sname") or "").strip()
+    password = (data.get("password") or "").strip()
+    phone = (data.get("phone") or "").strip()
+    if not sid or not sname or not password:
+        return jsonify({"error": "商户ID、名称、密码必填"}), 400
+    try:
+        with db_conn() as conn:
+            with conn.cursor() as cur:
+                cur.execute("SELECT sid FROM `shop` WHERE sid=%s", (sid,))
+                if cur.fetchone():
+                    return jsonify({"error": "商户ID已存在"}), 400
+                cur.execute(
+                    "INSERT INTO `shop`(sid, sname, `password`, phone_num) VALUES (%s,%s,%s,%s)",
+                    (sid, sname, password, phone),
+                )
+        return jsonify({"success": True})
+    except Exception as e:
+        return jsonify({"error": f"注册失败: {e}"}), 500
+
+
+@app.post("/api/merchant/login")
+def merchant_login():
+    data = request.get_json(silent=True) or {}
+    sid = (data.get("sid") or "").strip()
+    password = (data.get("password") or "").strip()
+    try:
+        with db_conn() as conn:
+            with conn.cursor() as cur:
+                cur.execute("SELECT sid, `password`, sname FROM `shop` WHERE sid=%s", (sid,))
+                row = cur.fetchone()
+                if not row or (row.get("password") or "").strip() != password:
+                    return jsonify({"error": "商户ID或密码错误"}), 401
+        token = uuid.uuid4().hex
+        shop_tokens[token] = sid
+        return jsonify({"token": token, "shop": {"sid": sid, "name": row.get("sname")}})
+    except Exception as e:
+        return jsonify({"error": f"登录失败: {e}"}), 500
+
+
+@app.post("/api/merchant/submit")
+def merchant_submit():
+    sid = require_shop_token()
+    if not sid:
+        return jsonify({"error": "未授权"}), 401
+    data = request.get_json(silent=True) or {}
+    name = (data.get("name") or "").strip()
+    count = int(data.get("count") or 0)
+    value = int(data.get("value") or 0)
+    if not name or count <= 0 or value <= 0:
+        return jsonify({"error": "参数不合法"}), 400
+    try:
+        with db_conn() as conn:
+            with conn.cursor() as cur:
+                cur.execute(
+                    """
+                    INSERT INTO goods_requests(sid, gname, count, `value`, action, created_at)
+                    VALUES (%s,%s,%s,%s,'add',%s)
+                    """,
+                    (sid, name, count, value, datetime.now()),
+                )
+        return jsonify({"success": True})
+    except Exception as e:
+        return jsonify({"error": f"提交失败: {e}"}), 500
+
+
+@app.post("/api/merchant/offline")
+def merchant_offline():
+    sid = require_shop_token()
+    if not sid:
+        return jsonify({"error": "未授权"}), 401
+    data = request.get_json(silent=True) or {}
+    gid = int(data.get("gid") or 0)
+    if gid <= 0:
+        return jsonify({"error": "商品ID必填"}), 400
+    try:
+        with db_conn() as conn:
+            with conn.cursor() as cur:
+                cur.execute("SELECT gid FROM goods WHERE gid=%s AND sid=%s", (gid, sid))
+                row = cur.fetchone()
+                if not row:
+                    return jsonify({"error": "未找到该商户的商品"}), 404
+                cur.execute(
+                    """
+                    INSERT INTO goods_requests(sid, gname, count, `value`, action, target_gid, created_at)
+                    SELECT sid, gname, count, `value`, 'offline', gid, %s FROM goods WHERE gid=%s
+                    """,
+                    (datetime.now(), gid),
+                )
+        return jsonify({"success": True})
+    except Exception as e:
+        return jsonify({"error": f"下架申请失败: {e}"}), 500
+
+
+############################################
+# 管理员登录与商品审核
+############################################
+
+
+@app.post("/api/admin/login")
+def admin_login():
+    data = request.get_json(silent=True) or {}
+    username = (data.get("username") or "").strip()
+    password = (data.get("password") or "").strip()
+    if username != ADMIN_USER or password != ADMIN_PASS:
+        return jsonify({"error": "用户名或密码错误"}), 401
+    token = uuid.uuid4().hex
+    admin_tokens[token] = username
+    return jsonify({"token": token})
+
+
+@app.get("/api/admin/goods/pending")
+def admin_list_pending():
+    if not require_admin_token():
+        return jsonify({"error": "未授权"}), 401
+    try:
+        with db_conn() as conn:
+            with conn.cursor() as cur:
+                cur.execute(
+                    "SELECT id, sid, gname, count, `value`, action, target_gid FROM goods_requests WHERE status='pending' ORDER BY created_at DESC"
+                )
+                rows = cur.fetchall() or []
+        items = [
+            {
+                "id": r.get("id"),
+                "sid": r.get("sid"),
+                "name": r.get("gname"),
+                "count": r.get("count"),
+                "value": r.get("value"),
+                "action": r.get("action"),
+                "targetGid": r.get("target_gid"),
+            }
+            for r in rows
+        ]
+        return jsonify({"items": items})
+    except Exception as e:
+        return jsonify({"error": f"查询失败: {e}"}), 500
+
+
+def _next_gid(cur):
+    cur.execute("SELECT IFNULL(MAX(gid),0)+1 AS next_id FROM goods")
+    row = cur.fetchone() or {}
+    return int(row.get("next_id") or 1)
+
+
+@app.post("/api/admin/goods/approve")
+def admin_approve():
+    if not require_admin_token():
+        return jsonify({"error": "未授权"}), 401
+    data = request.get_json(silent=True) or {}
+    rid = int(data.get("id") or 0)
+    if rid <= 0:
+        return jsonify({"error": "参数不合法"}), 400
+    try:
+        with db_conn() as conn:
+            with conn.cursor() as cur:
+                cur.execute("SELECT * FROM goods_requests WHERE id=%s FOR UPDATE", (rid,))
+                req = cur.fetchone()
+                if not req or req.get("status") != "pending":
+                    return jsonify({"error": "记录不存在或已处理"}), 404
+                action = req.get("action")
+                approved_gid = None
+                if action == "add":
+                    new_gid = _next_gid(cur)
+                    cur.execute(
+                        "INSERT INTO goods(gid, gname, sid, count, `value`) VALUES (%s,%s,%s,%s,%s)",
+                        (new_gid, req.get("gname"), req.get("sid"), req.get("count"), req.get("value")),
+                    )
+                    approved_gid = new_gid
+                elif action == "offline":
+                    target_gid = req.get("target_gid")
+                    if not target_gid:
+                        return jsonify({"error": "缺少目标商品"}), 400
+                    cur.execute("DELETE FROM goods WHERE gid=%s", (target_gid,))
+                    approved_gid = target_gid
+                cur.execute(
+                    "UPDATE goods_requests SET status='approved', approved_gid=%s WHERE id=%s",
+                    (approved_gid, rid),
+                )
+        return jsonify({"success": True})
+    except Exception as e:
+        return jsonify({"error": f"操作失败: {e}"}), 500
+
+
+@app.post("/api/admin/goods/reject")
+def admin_reject():
+    if not require_admin_token():
+        return jsonify({"error": "未授权"}), 401
+    data = request.get_json(silent=True) or {}
+    rid = int(data.get("id") or 0)
+    if rid <= 0:
+        return jsonify({"error": "参数不合法"}), 400
+    try:
+        with db_conn() as conn:
+            with conn.cursor() as cur:
+                cur.execute("UPDATE goods_requests SET status='rejected' WHERE id=%s AND status='pending'", (rid,))
+                if cur.rowcount == 0:
+                    return jsonify({"error": "记录不存在或已处理"}), 404
+        return jsonify({"success": True})
+    except Exception as e:
+        return jsonify({"error": f"操作失败: {e}"}), 500
+
+
 @app.post("/api/trips")
 def submit_trip():
-    token = get_token_from_auth_header()
-    if not token or token not in tokens:
+    username = require_user_token()
+    if not username:
         return jsonify({"error": "未授权"}), 401
-    username = tokens[token]
     data = request.get_json(silent=True) or {}
     mode = (data.get("mode") or "").strip()
     distance = float(data.get("distance") or 0)
@@ -336,10 +590,9 @@ def submit_trip():
 
 @app.post("/api/redeem")
 def redeem():
-    token = get_token_from_auth_header()
-    if not token or token not in tokens:
+    username = require_user_token()
+    if not username:
         return jsonify({"error": "未授权"}), 401
-    username = tokens[token]
     data = request.get_json(silent=True) or {}
     product_name = (data.get("productName") or "").strip()
     required_points = int(data.get("requiredPoints") or 0)
@@ -403,6 +656,10 @@ def logout():
     token = get_token_from_auth_header()
     if token and token in tokens:
         tokens.pop(token, None)
+    if token and token in shop_tokens:
+        shop_tokens.pop(token, None)
+    if token and token in admin_tokens:
+        admin_tokens.pop(token, None)
     return jsonify({"success": True})
 
 

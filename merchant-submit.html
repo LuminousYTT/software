@@ -10,9 +10,10 @@
 
 <body>
 	<main class="container" style="padding: 2rem 0; max-width: 720px;">
-		<h1 class="section-title">商户提交商品审核</h1>
-		<p style="margin-bottom: 1rem; color: #555;">填写商品名称、数量与积分价值后提交，等待管理员审核上架。</p>
-		<div class="card">
+		<h1 class="section-title">商户商品管理</h1>
+		<p style="margin-bottom: 1rem; color: #555;">已登录商户可提交上架或下架申请，管理员审核后生效。</p>
+		<div class="card" style="margin-bottom:1rem;">
+			<h3>提交上架申请</h3>
 			<form id="merchant-form">
 				<div class="form-group">
 					<label for="gname">商品名称</label>
@@ -28,16 +29,35 @@
 						<input id="gvalue" name="gvalue" type="number" min="1" step="1" placeholder="100" required />
 					</div>
 				</div>
-				<button type="submit">提交审核</button>
+				<button type="submit">提交上架申请</button>
 				<div id="merchant-tip" class="empty-tip hidden">提交成功，等待管理员审核。</div>
+			</form>
+		</div>
+
+		<div class="card">
+			<h3>提交下架申请</h3>
+			<form id="offline-form">
+				<div class="form-group">
+					<label for="gid">商品ID</label>
+					<input id="gid" name="gid" type="number" min="1" step="1" placeholder="请输入已上架商品ID" required />
+				</div>
+				<button type="submit">提交下架申请</button>
+				<div id="offline-tip" class="empty-tip hidden">已提交下架申请，等待审核。</div>
 			</form>
 		</div>
 	</main>
 
 	<script>
-		const API_BASE = 'http://127.0.0.1:5000/api'; // 需由后端实现 /merchant/submit 接口
+		const API_BASE = 'http://127.0.0.1:5000/api';
+		const token = localStorage.getItem('merchant_token');
+		if (!token) {
+			window.location.href = 'merchant-auth.html';
+		}
+
 		const form = document.getElementById('merchant-form');
 		const tip = document.getElementById('merchant-tip');
+		const offlineForm = document.getElementById('offline-form');
+		const offlineTip = document.getElementById('offline-tip');
 
 		form.addEventListener('submit', async (e) => {
 			e.preventDefault();
@@ -49,7 +69,7 @@
 			try {
 				const res = await fetch(`${API_BASE}/merchant/submit`, {
 					method: 'POST',
-					headers: { 'Content-Type': 'application/json' },
+					headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
 					body: JSON.stringify(payload)
 				});
 				const data = await res.json();
@@ -60,6 +80,26 @@
 			} catch (err) {
 				tip.textContent = err.message || '提交失败';
 				tip.classList.remove('hidden');
+			}
+		});
+
+		offlineForm.addEventListener('submit', async (e) => {
+			e.preventDefault();
+			const payload = { gid: Number(document.getElementById('gid').value) };
+			try {
+				const res = await fetch(`${API_BASE}/merchant/offline`, {
+					method: 'POST',
+					headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+					body: JSON.stringify(payload)
+				});
+				const data = await res.json();
+				if (!res.ok) throw new Error(data.error || '提交失败');
+				offlineTip.textContent = '已提交下架申请，等待审核。';
+				offlineTip.classList.remove('hidden');
+				offlineForm.reset();
+			} catch (err) {
+				offlineTip.textContent = err.message || '提交失败';
+				offlineTip.classList.remove('hidden');
 			}
 		});
 	</script>

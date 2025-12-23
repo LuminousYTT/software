@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+	<meta charset="UTF-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+	<title>商户登录与注册</title>
+	<link rel="stylesheet" href="style.css" />
+</head>
+
+<body>
+	<main class="container" style="padding: 2rem 0; max-width: 520px;">
+		<h1 class="section-title">商户登录 / 注册</h1>
+		<div class="card">
+			<div class="page-tabs" style="margin-bottom:1rem;">
+				<button class="page-tab active" data-tab="login">登录</button>
+				<button class="page-tab" data-tab="register">注册</button>
+			</div>
+			<form id="merchant-login" data-tab-panel="login">
+				<div class="form-group">
+					<label for="login-sid">商户ID</label>
+					<input id="login-sid" type="text" placeholder="如: SH0001" required />
+				</div>
+				<div class="form-group">
+					<label for="login-pass">密码</label>
+					<input id="login-pass" type="password" placeholder="请输入密码" required />
+				</div>
+				<button type="submit">登录</button>
+				<div id="login-tip" class="empty-tip hidden">请输入商户ID和密码</div>
+			</form>
+
+			<form id="merchant-register" data-tab-panel="register" class="hidden">
+				<div class="form-group">
+					<label for="reg-sid">商户ID</label>
+					<input id="reg-sid" type="text" placeholder="10位以内" required />
+				</div>
+				<div class="form-group">
+					<label for="reg-sname">商户名称</label>
+					<input id="reg-sname" type="text" placeholder="名称" required />
+				</div>
+				<div class="form-group">
+					<label for="reg-pass">密码</label>
+					<input id="reg-pass" type="password" placeholder="请输入密码" required />
+				</div>
+				<div class="form-group">
+					<label for="reg-phone">电话</label>
+					<input id="reg-phone" type="tel" placeholder="联系电话" />
+				</div>
+				<button type="submit">注册</button>
+				<div id="reg-tip" class="empty-tip hidden">注册成功后自动登录</div>
+			</form>
+		</div>
+	</main>
+
+	<script>
+		const API_BASE = 'http://127.0.0.1:5000/api';
+		const tabs = document.querySelectorAll('[data-tab]');
+		const panels = document.querySelectorAll('[data-tab-panel]');
+
+		tabs.forEach(btn => {
+			btn.addEventListener('click', () => {
+				tabs.forEach(b => b.classList.toggle('active', b.dataset.tab === btn.dataset.tab));
+				panels.forEach(p => p.classList.toggle('hidden', p.dataset.tabPanel !== btn.dataset.tab));
+			});
+		});
+
+		const loginForm = document.getElementById('merchant-login');
+		const loginTip = document.getElementById('login-tip');
+		loginForm.addEventListener('submit', async (e) => {
+			e.preventDefault();
+			const sid = document.getElementById('login-sid').value.trim();
+			const password = document.getElementById('login-pass').value;
+			try {
+				const res = await fetch(`${API_BASE}/merchant/login`, {
+					method: 'POST',
+					headers: { 'Content-Type': 'application/json' },
+					body: JSON.stringify({ sid, password })
+				});
+				const data = await res.json();
+				if (!res.ok) throw new Error(data.error || '登录失败');
+				localStorage.setItem('merchant_token', data.token);
+				localStorage.setItem('merchant_sid', data.shop?.sid || '');
+				window.location.href = 'merchant-submit.html';
+			} catch (err) {
+				loginTip.textContent = err.message || '登录失败';
+				loginTip.classList.remove('hidden');
+			}
+		});
+
+		const regForm = document.getElementById('merchant-register');
+		const regTip = document.getElementById('reg-tip');
+		regForm.addEventListener('submit', async (e) => {
+			e.preventDefault();
+			const sid = document.getElementById('reg-sid').value.trim();
+			const sname = document.getElementById('reg-sname').value.trim();
+			const password = document.getElementById('reg-pass').value;
+			const phone = document.getElementById('reg-phone').value.trim();
+			try {
+				const res = await fetch(`${API_BASE}/merchant/register`, {
+					method: 'POST',
+					headers: { 'Content-Type': 'application/json' },
+					body: JSON.stringify({ sid, sname, password, phone })
+				});
+				const data = await res.json();
+				if (!res.ok) throw new Error(data.error || '注册失败');
+				regTip.textContent = '注册成功，正在自动登录…';
+				regTip.classList.remove('hidden');
+				// 自动登录
+				const loginRes = await fetch(`${API_BASE}/merchant/login`, {
+					method: 'POST',
+					headers: { 'Content-Type': 'application/json' },
+					body: JSON.stringify({ sid, password })
+				});
+				const loginData = await loginRes.json();
+				if (!loginRes.ok) throw new Error(loginData.error || '自动登录失败');
+				localStorage.setItem('merchant_token', loginData.token);
+				localStorage.setItem('merchant_sid', loginData.shop?.sid || '');
+				window.location.href = 'merchant-submit.html';
+			} catch (err) {
+				regTip.textContent = err.message || '注册失败';
+				regTip.classList.remove('hidden');
+			}
+		});
+	</script>
+</body>
+
+</html>
