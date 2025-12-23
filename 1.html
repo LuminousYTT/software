@@ -1,14 +1,49 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<section id="auth-section" class="auth-screen">
+	<div class="container auth-wrapper">
+		<div class="auth-box">
+			<div class="tabs">
+				<div class="tab active" data-tab="login">登录</div>
+				<div class="tab" data-tab="register">注册</div>
+			</div>
+			<form id="login-form">
+				<div class="form-group">
+					<label for="login-username">用户名</label>
+					<input type="text" id="login-username" placeholder="请输入用户名" required />
+				</div>
+				<div class="form-group">
+					<label for="login-password">密码</label>
+					<input type="password" id="login-password" placeholder="请输入密码" required />
+				</div>
+				<button type="submit">登录</button>
+				<div class="switch-text">
+					还没有账号？<a href="#" id="switch-to-register">立即注册</a>
+				</div>
+			</form>
 
-<head>
-	<meta charset="UTF-8" />
-	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-	<title>碳中和·绿色出行积分系统</title>
-	<link rel="stylesheet" href="style.css" />
-</head>
+			<form id="register-form" style="display:none;">
+				<div class="form-group">
+					<label for="reg-username">用户名</label>
+					<input type="text" id="reg-username" placeholder="6-16位字母或数字" required />
+				</div>
+				<div class="form-group">
+					<label for="reg-password">密码</label>
+					<input type="password" id="reg-password" placeholder="至少8位" required />
+				</div>
+				<div class="form-group">
+					<label for="reg-phone">手机号</label>
+					<input type="tel" id="reg-phone" placeholder="用于验证" required />
+				</div>
+				<button type="submit">注册</button>
+				<div class="switch-text">
+					已有账号？<a href="#" id="switch-to-login">立即登录</a>
+				</div>
+			</form>
+		</div>
+	</div>
+</section>
 
-<body>
+<div id="app-shell" class="hidden">
 	<header>
 		<div class="container header-content">
 			<div class="logo">
@@ -17,11 +52,10 @@
 			</div>
 			<nav>
 				<ul>
-					<li><a href="#home">首页</a></li>
-					<li><a href="#report">行程上报</a></li>
-					<li><a href="#points">积分明细</a></li>
-					<li><a href="#shop">积分商城</a></li>
-					<li><a href="https://www.mee.gov.cn/" target="_blank">政策指南</a></li>
+					<li><button class="nav-btn" data-nav-target="report">行程上报</button></li>
+					<li><button class="nav-btn" data-nav-target="points">积分明细</button></li>
+					<li><button class="nav-btn" data-nav-target="shop">积分商城</button></li>
+					<li><a href="https://www.mee.gov.cn/" target="_blank" rel="noopener">政策指南</a></li>
 				</ul>
 			</nav>
 			<div class="user-area">
@@ -35,53 +69,14 @@
 	<main class="container">
 		<h1 class="section-title">碳中和城市绿色出行积分系统</h1>
 
-		<!-- 登录 / 注册 -->
-		<section class="auth-container">
-			<div class="auth-box">
-				<div class="tabs">
-					<div class="tab active" data-tab="login">登录</div>
-					<div class="tab" data-tab="register">注册</div>
-				</div>
-				<form id="login-form">
-					<div class="form-group">
-						<label for="login-username">用户名</label>
-						<input type="text" id="login-username" placeholder="请输入用户名" required />
-					</div>
-					<div class="form-group">
-						<label for="login-password">密码</label>
-						<input type="password" id="login-password" placeholder="请输入密码" required />
-					</div>
-					<button type="submit">登录</button>
-					<div class="switch-text">
-						还没有账号？<a href="#" id="switch-to-register">立即注册</a>
-					</div>
-				</form>
+		<div class="page-tabs">
+			<button class="page-tab active" data-nav-target="report">行程上报</button>
+			<button class="page-tab" data-nav-target="points">积分明细</button>
+			<button class="page-tab" data-nav-target="shop">积分商城</button>
+		</div>
 
-				<form id="register-form" style="display:none;">
-					<div class="form-group">
-						<label for="reg-username">用户名</label>
-						<input type="text" id="reg-username" placeholder="6-16位字母或数字" required />
-					</div>
-					<div class="form-group">
-						<label for="reg-password">密码</label>
-						<input type="password" id="reg-password" placeholder="至少8位" required />
-					</div>
-					<div class="form-group">
-						<label for="reg-phone">手机号</label>
-						<input type="tel" id="reg-phone" placeholder="用于验证" required />
-					</div>
-					<button type="submit">注册</button>
-					<div class="switch-text">
-						已有账号？<a href="#" id="switch-to-login">立即登录</a>
-					</div>
-				</form>
-			</div>
-		</section>
-
-		<!-- 功能卡片 -->
-		<div class="features">
-			<!-- 行程上报 -->
-			<div class="card" id="report">
+		<section class="page" data-page="report">
+			<div class="card">
 				<h3>🚗 行程上报</h3>
 				<form id="trip-form">
 					<div class="form-group">
@@ -101,7 +96,6 @@
 								<option value="walk">步行</option>
 								<option value="bus">公交</option>
 								<option value="metro">地铁</option>
-								<!-- <option value="ev">新能源车</option> -->
 							</select>
 						</div>
 						<div class="form-group">
@@ -112,9 +106,10 @@
 					<button type="submit">提交行程</button>
 				</form>
 			</div>
+		</section>
 
-			<!-- 积分明细 -->
-			<div class="card" id="points">
+		<section class="page hidden" data-page="points">
+			<div class="card">
 				<h3>📊 积分明细</h3>
 				<p>当前总积分：<strong id="total-points" class="points">0</strong></p>
 				<table>
@@ -125,69 +120,20 @@
 							<th>积分</th>
 						</tr>
 					</thead>
-					<tbody id="points-table">
-						<!-- <tr>
-							<td>2025-12-18</td>
-							<td>骑行 5.2km</td>
-							<td>+15</td>
-						</tr>
-						<tr>
-							<td>2025-12-17</td>
-							<td>地铁出行 8km</td>
-							<td>+12</td>
-						</tr>
-						<tr>
-							<td>2025-12-16</td>
-							<td>步行 2km</td>
-							<td>+6</td>
-						</tr>
-						<tr>
-							<td>2025-12-15</td>
-							<td>公交出行 6km</td>
-							<td>+9</td>
-						</tr> -->
-					</tbody>
+					<tbody id="points-table"></tbody>
 				</table>
+				<div id="points-empty" class="empty-tip hidden">暂无记录，快去上报行程吧！</div>
 			</div>
+		</section>
 
-			<!-- 积分商城 -->
-			<div class="card" id="shop">
+		<section class="page hidden" data-page="shop">
+			<div class="card">
 				<h3>🎁 积分商城</h3>
 				<p>可用积分：<strong id="available-points" class="points">0</strong></p>
-				<div class="shop-grid">
-					<div class="product" data-product-name="共享单车月卡" data-required-points="200">
-						<div class="product-img">🚲</div>
-						<div class="product-info">
-							<h4>共享单车月卡</h4>
-							<p>30天无限次骑行</p>
-							<div class="price">30元</div>
-							<div class="points">需 200 积分</div>
-							<button class="redeem-btn">立即兑换</button>
-						</div>
-					</div>
-					<div class="product" data-product-name="环保咖啡券" data-required-points="150">
-						<div class="product-img">☕</div>
-						<div class="product-info">
-							<h4>环保咖啡券</h4>
-							<p>合作咖啡店免费中杯</p>
-							<div class="price">25元</div>
-							<div class="points">需 150 积分</div>
-							<button class="redeem-btn">立即兑换</button>
-						</div>
-					</div>
-					<div class="product" data-product-name="绿植盆栽" data-required-points="80">
-						<div class="product-img">🌱</div>
-						<div class="product-info">
-							<h4>绿植盆栽</h4>
-							<p>多肉植物小盆栽</p>
-							<div class="price">15元</div>
-							<div class="points">需 80 积分</div>
-							<button class="redeem-btn">立即兑换</button>
-						</div>
-					</div>
-				</div>
+				<div id="goods-grid" class="shop-grid"></div>
+				<div id="goods-empty" class="empty-tip hidden">商城暂无商品，请稍后再来</div>
 			</div>
-		</div>
+		</section>
 	</main>
 
 	<footer>
@@ -196,9 +142,17 @@
 			<p>本系统模拟演示，实际数据以官方平台为准</p>
 		</div>
 	</footer>
+</div>
 
-	<!-- 脚本拆分为外部文件 script.js -->
-	<script src="script.js"></script>
+<script src="script.js"></script>
+</body>
+
+</html>
+</div>
+</footer>
+
+<!-- 脚本拆分为外部文件 script.js -->
+<script src="script.js"></script>
 </body>
 
 </html>

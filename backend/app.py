@@ -96,11 +96,13 @@ def ensure_database_and_tables():
     ddl_points = (
         """
         CREATE TABLE IF NOT EXISTS `points` (
-            uid CHAR(10) PRIMARY KEY,
+            id BIGINT AUTO_INCREMENT PRIMARY KEY,
+            uid CHAR(10),
             date_time DATETIME,
             movement ENUM('骑行','地铁出行','公交出行','步行','兑换'),
             `distance` DOUBLE,
             ji INT,
+            INDEX idx_uid_date (uid, date_time),
             FOREIGN KEY (uid) REFERENCES `user`(uid)
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
         """
@@ -125,6 +127,31 @@ def ensure_database_and_tables():
             cur.execute(ddl_shop)
             cur.execute(ddl_points)
             cur.execute(ddl_goods)
+
+
+def migrate_points_table():
+    """Ensure points表具备自增主键且允许多条记录"""
+    try:
+        with db_conn() as conn:
+            with conn.cursor() as cur:
+                cur.execute("SHOW COLUMNS FROM `points` LIKE 'id'")
+                has_id = cur.fetchone()
+                if not has_id:
+                    # 旧表主键在 uid 上，先移除，再添加自增主键
+                    try:
+                        cur.execute("ALTER TABLE `points` DROP PRIMARY KEY")
+                    except Exception:
+                        # 如果没有主键直接忽略
+                        conn.rollback()
+                        conn.begin()
+                    cur.execute("ALTER TABLE `points` ADD COLUMN `id` BIGINT NOT NULL AUTO_INCREMENT PRIMARY KEY FIRST")
+                # 确保有索引以便按用户查询
+                cur.execute("SHOW INDEX FROM `points` WHERE Key_name='idx_uid_date'")
+                has_idx = cur.fetchone()
+                if not has_idx:
+                    cur.execute("CREATE INDEX idx_uid_date ON `points`(uid, date_time)")
+    except Exception as e:
+        print(f"[WARN] migrate_points_table failed: {e}")
 
 
 def get_token_from_auth_header():
@@ -213,6 +240,62 @@ def me():
         return jsonify({"error": f"查询失败: {e}"}), 500
 
 
+@app.get("/api/points")
+def list_points():
+    token = get_token_from_auth_header()
+    if not token or token not in tokens:
+        return jsonify({"error": "未授权"}), 401
+    username = tokens[token]
+    try:
+        with db_conn() as conn:
+            with conn.cursor() as cur:
+                cur.execute(
+                    "SELECT date_time, movement, `distance`, ji FROM `points` WHERE uid=%s ORDER BY date_time DESC LIMIT 200",
+                    (username,),
+                )
+                rows = cur.fetchall() or []
+                cur.execute("SELECT sum_ji FROM `user` WHERE uid=%s", (username,))
+                total = int((cur.fetchone() or {}).get("sum_ji") or 0)
+        # 将 datetime 序列化为 ISO 字符串
+        items = []
+        for r in rows:
+            items.append(
+                {
+                    "date": r["date_time"].isoformat() if r.get("date_time") else None,
+                    "movement": r.get("movement"),
+                    "distance": float(r.get("distance")) if r.get("distance") is not None else None,
+                    "points": int(r.get("ji") or 0),
+                }
+            )
+        return jsonify({"items": items, "user": {"username": username, "points": total}})
+    except Exception as e:
+        return jsonify({"error": f"查询失败: {e}"}), 500
+
+
+@app.get("/api/goods")
+def list_goods():
+    try:
+        with db_conn() as conn:
+            with conn.cursor() as cur:
+                cur.execute(
+                    "SELECT gid, gname, sid, `count`, `value` FROM `goods` ORDER BY gid ASC"
+                )
+                rows = cur.fetchall() or []
+        goods = [
+            {
+                "id": r.get("gid"),
+                "name": r.get("gname"),
+                "shopId": r.get("sid"),
+                "stock": int(r.get("count") or 0),
+                "value": int(r.get("value") or 0),
+            }
+            for r in rows
+        ]
+        return jsonify({"goods": goods})
+    except Exception as e:
+        return jsonify({"error": f"查询商品失败: {e}"}), 500
+
+
 @app.post("/api/trips")
 def submit_trip():
     token = get_token_from_auth_header()
@@ -235,11 +318,6 @@ def submit_trip():
                     """
                     INSERT INTO `points`(uid, date_time, movement, `distance`, ji)
                     VALUES (%s, %s, %s, %s, %s)
-                    ON DUPLICATE KEY UPDATE
-                        date_time=VALUES(date_time),
-                        movement=VALUES(movement),
-                        `distance`=VALUES(`distance`),
-                        ji=VALUES(ji)
                     """,
                     (username, datetime.now(), movement_cn, distance, earned),
                 )
@@ -296,11 +374,6 @@ def redeem():
                     """
                     INSERT INTO `points`(uid, date_time, movement, `distance`, ji)
                     VALUES (%s, %s, '兑换', %s, %s)
-                    ON DUPLICATE KEY UPDATE
-                        date_time=VALUES(date_time),
-                        movement=VALUES(movement),
-                        `distance`=VALUES(`distance`),
-                        ji=VALUES(ji)
                     """,
                     (username, datetime.now(), 0.0, -cost),
                 )
@@ -337,6 +410,7 @@ if __name__ == "__main__":
     # 启动时确保表已创建（根据环境变量可选创建数据库）
     try:
         ensure_database_and_tables()
+        migrate_points_table()
     except Exception as e:
         print(f"[WARN] 初始化数据库/数据表时发生错误: {e}")
     app.run(host="127.0.0.1", port=5000, debug=True)

@@ -12,6 +12,21 @@ body {
 	line-height: 1.6;
 }
 
+.hidden {
+	display: none !important;
+}
+
+.auth-screen {
+	min-height: 100vh;
+	display: flex;
+	align-items: center;
+	background: linear-gradient(135deg, #2e7d32 0%, #4caf50 40%, #f5f9f5 100%);
+}
+
+.auth-wrapper {
+	width: 100%;
+}
+
 .container {
 	max-width: 1200px;
 	margin: 0 auto;
@@ -48,6 +63,19 @@ nav ul {
 	display: flex;
 	list-style: none;
 	gap: 20px;
+}
+
+.nav-btn {
+	background: transparent;
+	border: none;
+	color: white;
+	cursor: pointer;
+	font-weight: 500;
+	padding: 0.2rem 0.4rem;
+}
+
+.nav-btn.active {
+	border-bottom: 2px solid rgba(255, 255, 255, 0.9);
 }
 
 nav a {
@@ -91,6 +119,22 @@ button:focus-visible {
 /* Main Section */
 main {
 	padding: 2rem 0;
+}
+
+.page {
+	animation: fadeIn 0.25s ease;
+}
+
+@keyframes fadeIn {
+	from {
+		opacity: 0;
+		transform: translateY(6px);
+	}
+
+	to {
+		opacity: 1;
+		transform: translateY(0);
+	}
 }
 
 .section-title {
@@ -317,6 +361,15 @@ tr:last-child td {
 
 .redeem-btn:hover {
 	background: #1b5e20;
+}
+
+.empty-tip {
+	margin-top: 1rem;
+	color: #666;
+	background: #f0f7f0;
+	border: 1px dashed #c8e6c9;
+	padding: 0.8rem 1rem;
+	border-radius: 10px;
 }
 
 /* Footer */
