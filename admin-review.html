@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+	<meta charset="UTF-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+	<title>待审核商品管理</title>
+	<link rel="stylesheet" href="style.css" />
+</head>
+
+<body>
+	<main class="container" style="padding: 2rem 0; max-width: 900px;">
+		<h1 class="section-title">待审核商品管理</h1>
+		<div class="card">
+			<div style="display:flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+				<div>审核通过后，商品才会上架到积分商城。</div>
+				<button id="admin-logout" class="btn-link" type="button"
+					style="color:#2e7d32; border-color:#2e7d32;">退出</button>
+			</div>
+			<div id="pending-list" class="shop-grid"></div>
+			<div id="pending-empty" class="empty-tip">暂无待审核商品</div>
+		</div>
+	</main>
+
+	<script>
+		const API_BASE = 'http://127.0.0.1:5000/api'; // 需后端实现 /admin/goods 接口
+		const listEl = document.getElementById('pending-list');
+		const emptyEl = document.getElementById('pending-empty');
+		const token = localStorage.getItem('admin_token');
+
+		if (!token) {
+			window.location.href = 'admin-login.html';
+		}
+
+		document.getElementById('admin-logout').addEventListener('click', () => {
+			localStorage.removeItem('admin_token');
+			window.location.href = 'admin-login.html';
+		});
+
+		listEl.addEventListener('click', async (e) => {
+			const btn = e.target.closest('button[data-action]');
+			if (!btn) return;
+			const id = btn.dataset.id;
+			const action = btn.dataset.action; // approve / reject
+			try {
+				const res = await fetch(`${API_BASE}/admin/goods/${action}`, {
+					method: 'POST',
+					headers: {
+						'Content-Type': 'application/json',
+						'Authorization': `Bearer ${token}`
+					},
+					body: JSON.stringify({ id })
+				});
+				const data = await res.json();
+				if (!res.ok) throw new Error(data.error || '操作失败');
+				await loadPending();
+			} catch (err) {
+				alert(err.message || '操作失败');
+			}
+		});
+
+		async function loadPending() {
+			try {
+				const res = await fetch(`${API_BASE}/admin/goods/pending`, {
+					headers: { 'Authorization': `Bearer ${token}` }
+				});
+				const data = await res.json();
+				if (!res.ok) throw new Error(data.error || '加载失败');
+				renderList(data.items || []);
+			} catch (err) {
+				emptyEl.textContent = err.message || '加载失败';
+				emptyEl.classList.remove('hidden');
+			}
+		}
+
+		function renderList(items) {
+			listEl.innerHTML = '';
+			if (!items.length) {
+				emptyEl.classList.remove('hidden');
+				return;
+			}
+			emptyEl.classList.add('hidden');
+			items.forEach(item => {
+				const card = document.createElement('div');
+				card.className = 'product';
+				card.innerHTML = `
+                    <div class="product-img">📦</div>
+                    <div class="product-info">
+                        <h4>${item.name || '未命名商品'}</h4>
+                        <p>数量：${item.count ?? 0}</p>
+                        <div class="price">价值：${item.value ?? 0} 积分</div>
+                        <div style="display:flex; gap: 0.5rem; margin-top: 0.8rem;">
+                            <button class="redeem-btn" data-action="approve" data-id="${item.id}">通过</button>
+                            <button class="btn-link" data-action="reject" data-id="${item.id}" style="color:#e53935; border-color:#e53935;">驳回</button>
+                        </div>
+                    </div>
+                `;
+				listEl.appendChild(card);
+			});
+		}
+
+		loadPending();
+	</script>
+</body>
+
+</html>

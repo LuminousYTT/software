@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+	<meta charset="UTF-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+	<title>商户提交商品</title>
+	<link rel="stylesheet" href="style.css" />
+</head>
+
+<body>
+	<main class="container" style="padding: 2rem 0; max-width: 720px;">
+		<h1 class="section-title">商户提交商品审核</h1>
+		<p style="margin-bottom: 1rem; color: #555;">填写商品名称、数量与积分价值后提交，等待管理员审核上架。</p>
+		<div class="card">
+			<form id="merchant-form">
+				<div class="form-group">
+					<label for="gname">商品名称</label>
+					<input id="gname" name="gname" type="text" placeholder="例如：咖啡券" required />
+				</div>
+				<div class="form-row">
+					<div class="form-group">
+						<label for="gcount">数量</label>
+						<input id="gcount" name="gcount" type="number" min="1" step="1" placeholder="10" required />
+					</div>
+					<div class="form-group">
+						<label for="gvalue">价值（积分）</label>
+						<input id="gvalue" name="gvalue" type="number" min="1" step="1" placeholder="100" required />
+					</div>
+				</div>
+				<button type="submit">提交审核</button>
+				<div id="merchant-tip" class="empty-tip hidden">提交成功，等待管理员审核。</div>
+			</form>
+		</div>
+	</main>
+
+	<script>
+		const API_BASE = 'http://127.0.0.1:5000/api'; // 需由后端实现 /merchant/submit 接口
+		const form = document.getElementById('merchant-form');
+		const tip = document.getElementById('merchant-tip');
+
+		form.addEventListener('submit', async (e) => {
+			e.preventDefault();
+			const payload = {
+				name: document.getElementById('gname').value.trim(),
+				count: Number(document.getElementById('gcount').value),
+				value: Number(document.getElementById('gvalue').value)
+			};
+			try {
+				const res = await fetch(`${API_BASE}/merchant/submit`, {
+					method: 'POST',
+					headers: { 'Content-Type': 'application/json' },
+					body: JSON.stringify(payload)
+				});
+				const data = await res.json();
+				if (!res.ok) throw new Error(data.error || '提交失败');
+				tip.textContent = '提交成功，等待管理员审核。';
+				tip.classList.remove('hidden');
+				form.reset();
+			} catch (err) {
+				tip.textContent = err.message || '提交失败';
+				tip.classList.remove('hidden');
+			}
+		});
+	</script>
+</body>
+
+</html>

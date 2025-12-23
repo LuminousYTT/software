@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+	<meta charset="UTF-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+	<title>管理员登录</title>
+	<link rel="stylesheet" href="style.css" />
+</head>
+
+<body>
+	<main class="container" style="padding: 2rem 0; max-width: 480px;">
+		<h1 class="section-title">管理员登录</h1>
+		<div class="card">
+			<form id="admin-login-form">
+				<div class="form-group">
+					<label for="admin-user">用户名</label>
+					<input id="admin-user" type="text" placeholder="admin" required />
+				</div>
+				<div class="form-group">
+					<label for="admin-pass">密码</label>
+					<input id="admin-pass" type="password" placeholder="123456" required />
+				</div>
+				<button type="submit">登录</button>
+				<div id="admin-login-tip" class="empty-tip hidden">使用 admin / 123456 登录（需后端验证）</div>
+			</form>
+		</div>
+	</main>
+
+	<script>
+		const API_BASE = 'http://127.0.0.1:5000/api'; // 需后端实现 /admin/login
+		const form = document.getElementById('admin-login-form');
+		const tip = document.getElementById('admin-login-tip');
+
+		form.addEventListener('submit', async (e) => {
+			e.preventDefault();
+			const username = document.getElementById('admin-user').value.trim();
+			const password = document.getElementById('admin-pass').value;
+			try {
+				const res = await fetch(`${API_BASE}/admin/login`, {
+					method: 'POST',
+					headers: { 'Content-Type': 'application/json' },
+					body: JSON.stringify({ username, password })
+				});
+				const data = await res.json();
+				if (!res.ok) throw new Error(data.error || '登录失败');
+				localStorage.setItem('admin_token', data.token);
+				window.location.href = 'admin-review.html';
+			} catch (err) {
+				tip.textContent = err.message || '登录失败';
+				tip.classList.remove('hidden');
+			}
+		});
+	</script>
+</body>
+
+</html>
