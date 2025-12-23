@@ -1,158 +1,160 @@
 <!DOCTYPE html>
-<section id="auth-section" class="auth-screen">
-	<div class="container auth-wrapper">
-		<div class="auth-box">
-			<div class="tabs">
-				<div class="tab active" data-tab="login">登录</div>
-				<div class="tab" data-tab="register">注册</div>
-			</div>
-			<form id="login-form">
-				<div class="form-group">
-					<label for="login-username">用户名</label>
-					<input type="text" id="login-username" placeholder="请输入用户名" required />
-				</div>
-				<div class="form-group">
-					<label for="login-password">密码</label>
-					<input type="password" id="login-password" placeholder="请输入密码" required />
-				</div>
-				<button type="submit">登录</button>
-				<div class="switch-text">
-					还没有账号？<a href="#" id="switch-to-register">立即注册</a>
-				</div>
-			</form>
+<html lang="zh-CN">
 
-			<form id="register-form" style="display:none;">
-				<div class="form-group">
-					<label for="reg-username">用户名</label>
-					<input type="text" id="reg-username" placeholder="6-16位字母或数字" required />
-				</div>
-				<div class="form-group">
-					<label for="reg-password">密码</label>
-					<input type="password" id="reg-password" placeholder="至少8位" required />
-				</div>
-				<div class="form-group">
-					<label for="reg-phone">手机号</label>
-					<input type="tel" id="reg-phone" placeholder="用于验证" required />
-				</div>
-				<button type="submit">注册</button>
-				<div class="switch-text">
-					已有账号？<a href="#" id="switch-to-login">立即登录</a>
-				</div>
-			</form>
-		</div>
-	</div>
-</section>
+<head>
+	<meta charset="UTF-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+	<title>碳中和·绿色出行积分系统</title>
+	<link rel="stylesheet" href="style.css" />
+</head>
 
-<div id="app-shell" class="hidden">
-	<header>
-		<div class="container header-content">
-			<div class="logo">
-				<span>🌱</span>
-				<span>绿行积分</span>
-			</div>
-			<nav>
-				<ul>
-					<li><button class="nav-btn" data-nav-target="report">行程上报</button></li>
-					<li><button class="nav-btn" data-nav-target="points">积分明细</button></li>
-					<li><button class="nav-btn" data-nav-target="shop">积分商城</button></li>
-					<li><a href="https://www.mee.gov.cn/" target="_blank" rel="noopener">政策指南</a></li>
-				</ul>
-			</nav>
-			<div class="user-area">
-				<span>当前用户：</span>
-				<strong id="user-name">未登录</strong>
-				<button id="logout-btn" type="button" class="btn-link">退出登录</button>
-			</div>
-		</div>
-	</header>
-
-	<main class="container">
-		<h1 class="section-title">碳中和城市绿色出行积分系统</h1>
-
-		<div class="page-tabs">
-			<button class="page-tab active" data-nav-target="report">行程上报</button>
-			<button class="page-tab" data-nav-target="points">积分明细</button>
-			<button class="page-tab" data-nav-target="shop">积分商城</button>
-		</div>
-
-		<section class="page" data-page="report">
-			<div class="card">
-				<h3>🚗 行程上报</h3>
-				<form id="trip-form">
+<body>
+	<section id="auth-section" class="auth-screen">
+		<div class="container auth-wrapper">
+			<div class="auth-box">
+				<div class="tabs">
+					<div class="tab active" data-tab="login">登录</div>
+					<div class="tab" data-tab="register">注册</div>
+				</div>
+				<form id="login-form">
 					<div class="form-group">
-						<label>起点</label>
-						<input type="text" placeholder="例如：人民广场" required />
+						<label for="login-username">用户名</label>
+						<input type="text" id="login-username" placeholder="请输入用户名" required />
 					</div>
 					<div class="form-group">
-						<label>终点</label>
-						<input type="text" placeholder="例如：徐家汇地铁站" required />
+						<label for="login-password">密码</label>
+						<input type="password" id="login-password" placeholder="请输入密码" required />
 					</div>
-					<div class="form-row">
-						<div class="form-group">
-							<label>交通方式</label>
-							<select id="mode" required>
-								<option value="">请选择</option>
-								<option value="bike">骑行</option>
-								<option value="walk">步行</option>
-								<option value="bus">公交</option>
-								<option value="metro">地铁</option>
-							</select>
-						</div>
-						<div class="form-group">
-							<label>距离 (km)</label>
-							<input id="distance" type="number" min="0.1" step="0.1" placeholder="如 3.5" required />
-						</div>
+					<button type="submit">登录</button>
+					<div class="switch-text">
+						还没有账号？<a href="#" id="switch-to-register">立即注册</a>
 					</div>
-					<button type="submit">提交行程</button>
+				</form>
+
+				<form id="register-form" style="display:none;">
+					<div class="form-group">
+						<label for="reg-username">用户名</label>
+						<input type="text" id="reg-username" placeholder="6-16位字母或数字" required />
+					</div>
+					<div class="form-group">
+						<label for="reg-password">密码</label>
+						<input type="password" id="reg-password" placeholder="至少8位" required />
+					</div>
+					<div class="form-group">
+						<label for="reg-phone">手机号</label>
+						<input type="tel" id="reg-phone" placeholder="用于验证" required />
+					</div>
+					<button type="submit">注册</button>
+					<div class="switch-text">
+						已有账号？<a href="#" id="switch-to-login">立即登录</a>
+					</div>
 				</form>
 			</div>
-		</section>
-
-		<section class="page hidden" data-page="points">
-			<div class="card">
-				<h3>📊 积分明细</h3>
-				<p>当前总积分：<strong id="total-points" class="points">0</strong></p>
-				<table>
-					<thead>
-						<tr>
-							<th>日期</th>
-							<th>行为</th>
-							<th>积分</th>
-						</tr>
-					</thead>
-					<tbody id="points-table"></tbody>
-				</table>
-				<div id="points-empty" class="empty-tip hidden">暂无记录，快去上报行程吧！</div>
-			</div>
-		</section>
-
-		<section class="page hidden" data-page="shop">
-			<div class="card">
-				<h3>🎁 积分商城</h3>
-				<p>可用积分：<strong id="available-points" class="points">0</strong></p>
-				<div id="goods-grid" class="shop-grid"></div>
-				<div id="goods-empty" class="empty-tip hidden">商城暂无商品，请稍后再来</div>
-			</div>
-		</section>
-	</main>
-
-	<footer>
-		<div class="container">
-			<p>© 2025 绿行积分系统 | 助力碳中和，共建绿色城市</p>
-			<p>本系统模拟演示，实际数据以官方平台为准</p>
 		</div>
-	</footer>
-</div>
+	</section>
 
-<script src="script.js"></script>
-</body>
+	<div id="app-shell" class="hidden">
+		<header>
+			<div class="container header-content">
+				<div class="logo">
+					<span>🌱</span>
+					<span>绿行积分</span>
+				</div>
+				<nav>
+					<ul>
+						<li><button class="nav-btn" data-nav-target="report">行程上报</button></li>
+						<li><button class="nav-btn" data-nav-target="points">积分明细</button></li>
+						<li><button class="nav-btn" data-nav-target="shop">积分商城</button></li>
+						<li><a href="https://www.mee.gov.cn/" target="_blank" rel="noopener">政策指南</a></li>
+					</ul>
+				</nav>
+				<div class="user-area">
+					<span>当前用户：</span>
+					<strong id="user-name">未登录</strong>
+					<button id="logout-btn" type="button" class="btn-link">退出登录</button>
+				</div>
+			</div>
+		</header>
 
-</html>
-</div>
-</footer>
+		<main class="container">
+			<h1 class="section-title">碳中和城市绿色出行积分系统</h1>
 
-<!-- 脚本拆分为外部文件 script.js -->
-<script src="script.js"></script>
+			<div class="page-tabs">
+				<button class="page-tab active" data-nav-target="report">行程上报</button>
+				<button class="page-tab" data-nav-target="points">积分明细</button>
+				<button class="page-tab" data-nav-target="shop">积分商城</button>
+			</div>
+
+			<section class="page" data-page="report">
+				<div class="card">
+					<h3>🚗 行程上报</h3>
+					<form id="trip-form">
+						<div class="form-group">
+							<label>起点</label>
+							<input type="text" placeholder="例如：人民广场" required />
+						</div>
+						<div class="form-group">
+							<label>终点</label>
+							<input type="text" placeholder="例如：徐家汇地铁站" required />
+						</div>
+						<div class="form-row">
+							<div class="form-group">
+								<label>交通方式</label>
+								<select id="mode" required>
+									<option value="">请选择</option>
+									<option value="bike">骑行</option>
+									<option value="walk">步行</option>
+									<option value="bus">公交</option>
+									<option value="metro">地铁</option>
+								</select>
+							</div>
+							<div class="form-group">
+								<label>距离 (km)</label>
+								<input id="distance" type="number" min="0.1" step="0.1" placeholder="如 3.5" required />
+							</div>
+						</div>
+						<button type="submit">提交行程</button>
+					</form>
+				</div>
+			</section>
+
+			<section class="page hidden" data-page="points">
+				<div class="card">
+					<h3>📊 积分明细</h3>
+					<p>当前总积分：<strong id="total-points" class="points">0</strong></p>
+					<table>
+						<thead>
+							<tr>
+								<th>日期</th>
+								<th>行为</th>
+								<th>积分</th>
+							</tr>
+						</thead>
+						<tbody id="points-table"></tbody>
+					</table>
+					<div id="points-empty" class="empty-tip hidden">暂无记录，快去上报行程吧！</div>
+				</div>
+			</section>
+
+			<section class="page hidden" data-page="shop">
+				<div class="card">
+					<h3>🎁 积分商城</h3>
+					<p>可用积分：<strong id="available-points" class="points">0</strong></p>
+					<div id="goods-grid" class="shop-grid"></div>
+					<div id="goods-empty" class="empty-tip hidden">商城暂无商品，请稍后再来</div>
+				</div>
+			</section>
+		</main>
+
+		<footer>
+			<div class="container">
+				<p>© 2025 绿行积分系统 | 助力碳中和，共建绿色城市</p>
+				<p>本系统模拟演示，实际数据以官方平台为准</p>
+			</div>
+		</footer>
+	</div>
+
+	<script src="script.js"></script>
 </body>
 
 </html>
