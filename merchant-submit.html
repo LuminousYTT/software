@@ -34,6 +34,14 @@
 			</form>
 		</div>
 
+
+
+		<div class="card" style="margin-top:1rem;">
+			<h3>已上架商品</h3>
+			<div id="mine-list" class="shop-grid"></div>
+			<div id="mine-empty" class="empty-tip hidden">暂无已上架商品</div>
+		</div>
+
 		<div class="card">
 			<h3>提交下架申请</h3>
 			<form id="offline-form">
@@ -45,16 +53,10 @@
 				<div id="offline-tip" class="empty-tip hidden">已提交下架申请，等待审核。</div>
 			</form>
 		</div>
-
-		<div class="card" style="margin-top:1rem;">
-			<h3>已上架商品</h3>
-			<div id="mine-list" class="shop-grid"></div>
-			<div id="mine-empty" class="empty-tip hidden">暂无已上架商品</div>
-		</div>
 	</main>
 
 	<script>
-		const API_BASE = 'http://127.0.0.1:5000/api';
+		const API_BASE = 'http://192.168.202.124:5000/api';
 		const token = localStorage.getItem('merchant_token');
 		if (!token) {
 			window.location.href = 'merchant-auth.html';

@@ -697,4 +697,4 @@ if __name__ == "__main__":
         migrate_points_table()
     except Exception as e:
         print(f"[WARN] 初始化数据库/数据表时发生错误: {e}")
-    app.run(host="127.0.0.1", port=5000, debug=True)
+    app.run(host="0.0.0.0", port=5000, debug=True)

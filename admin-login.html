@@ -22,13 +22,13 @@
 					<input id="admin-pass" type="password" required />
 				</div>
 				<button type="submit">登录</button>
-				<div id="admin-login-tip" class="empty-tip hidden">使用 admin / 123456 登录（需后端验证）</div>
+				<!-- <div id="admin-login-tip" class="empty-tip hidden">使用 admin / 123456 登录（需后端验证）</div> -->
 			</form>
 		</div>
 	</main>
 
 	<script>
-		const API_BASE = 'http://127.0.0.1:5000/api'; // 需后端实现 /admin/login
+		const API_BASE = 'http://192.168.202.124:5000/api'; // 需后端实现 /admin/login
 		const form = document.getElementById('admin-login-form');
 		const tip = document.getElementById('admin-login-tip');
 

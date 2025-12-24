@@ -1,7 +1,7 @@
 let currentUser = null;
 let points = 0;
 
-const API_BASE = 'http://127.0.0.1:5000/api';
+const API_BASE = 'http://192.168.202.124:5000/api';
 const AUTH_KEY = 'green_points_auth';
 
 // DOM 元素
