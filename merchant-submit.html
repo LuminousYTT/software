@@ -56,7 +56,15 @@
 	</main>
 
 	<script>
-		const API_BASE = 'http://192.168.202.124:5000/api';
+		function resolveApiBase() {
+			const { protocol, hostname } = window.location;
+			const safeProtocol = protocol.startsWith('http') ? protocol : 'http:';
+			const host = hostname || '192.168.202.124';
+			const port = 5000;
+			return `${safeProtocol}//${host}:${port}/api`;
+		}
+
+		const API_BASE = resolveApiBase();
 		const token = localStorage.getItem('merchant_token');
 		if (!token) {
 			window.location.href = 'merchant-auth.html';

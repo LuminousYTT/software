@@ -1,7 +1,15 @@
 let currentUser = null;
 let points = 0;
 
-const API_BASE = 'http://192.168.202.124:5000/api';
+function resolveApiBase() {
+	const { protocol, hostname } = window.location;
+	const safeProtocol = protocol.startsWith('http') ? protocol : 'http:';
+	const host = hostname || '192.168.202.124'; // fallback for file://打开
+	const port = 5000;
+	return `${safeProtocol}//${host}:${port}/api`;
+}
+
+const API_BASE = resolveApiBase();
 const AUTH_KEY = 'green_points_auth';
 
 // DOM 元素

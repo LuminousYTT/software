@@ -23,7 +23,15 @@
 	</main>
 
 	<script>
-		const API_BASE = 'http://192.168.202.124:5000/api'; // 需后端实现 /admin/goods 接口
+		function resolveApiBase() {
+			const { protocol, hostname } = window.location;
+			const safeProtocol = protocol.startsWith('http') ? protocol : 'http:';
+			const host = hostname || '192.168.202.124';
+			const port = 5000;
+			return `${safeProtocol}//${host}:${port}/api`;
+		}
+
+		const API_BASE = resolveApiBase(); // 需后端实现 /admin/goods 接口
 		const listEl = document.getElementById('pending-list');
 		const emptyEl = document.getElementById('pending-empty');
 		const token = localStorage.getItem('admin_token');
