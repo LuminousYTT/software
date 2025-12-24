@@ -7,7 +7,8 @@ from pymysql.cursors import DictCursor
 from contextlib import contextmanager
 from datetime import datetime
 
-app = Flask(__name__)
+# 将上一级目录作为静态文件根目录，直接提供 user.html 等前端文件
+app = Flask(__name__, static_folder="..", static_url_path="")
 # 允许从本地文件打开的页面（origin 为 null）和任意来源访问 /api/*
 CORS(app, resources={r"/api/*": {"origins": "*"}})
 
