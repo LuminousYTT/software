@@ -442,6 +442,33 @@ def merchant_offline():
         return jsonify({"error": f"下架申请失败: {e}"}), 500
 
 
+@app.get("/api/merchant/goods")
+def merchant_goods():
+    sid = require_shop_token()
+    if not sid:
+        return jsonify({"error": "未授权"}), 401
+    try:
+        with db_conn() as conn:
+            with conn.cursor() as cur:
+                cur.execute(
+                    "SELECT gid, gname, count, `value` FROM goods WHERE sid=%s ORDER BY gid ASC",
+                    (sid,),
+                )
+                rows = cur.fetchall() or []
+        items = [
+            {
+                "id": r.get("gid"),
+                "name": r.get("gname"),
+                "count": r.get("count"),
+                "value": r.get("value"),
+            }
+            for r in rows
+        ]
+        return jsonify({"items": items})
+    except Exception as e:
+        return jsonify({"error": f"查询失败: {e}"}), 500
+
+
 ############################################
 # 管理员登录与商品审核
 ############################################

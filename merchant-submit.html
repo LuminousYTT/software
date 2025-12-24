@@ -45,6 +45,12 @@
 				<div id="offline-tip" class="empty-tip hidden">已提交下架申请，等待审核。</div>
 			</form>
 		</div>
+
+		<div class="card" style="margin-top:1rem;">
+			<h3>已上架商品</h3>
+			<div id="mine-list" class="shop-grid"></div>
+			<div id="mine-empty" class="empty-tip hidden">暂无已上架商品</div>
+		</div>
 	</main>
 
 	<script>
@@ -58,6 +64,8 @@
 		const tip = document.getElementById('merchant-tip');
 		const offlineForm = document.getElementById('offline-form');
 		const offlineTip = document.getElementById('offline-tip');
+		const mineList = document.getElementById('mine-list');
+		const mineEmpty = document.getElementById('mine-empty');
 
 		form.addEventListener('submit', async (e) => {
 			e.preventDefault();
@@ -77,6 +85,7 @@
 				tip.textContent = '提交成功，等待管理员审核。';
 				tip.classList.remove('hidden');
 				form.reset();
+				await loadMine();
 			} catch (err) {
 				tip.textContent = err.message || '提交失败';
 				tip.classList.remove('hidden');
@@ -97,11 +106,50 @@
 				offlineTip.textContent = '已提交下架申请，等待审核。';
 				offlineTip.classList.remove('hidden');
 				offlineForm.reset();
+				await loadMine();
 			} catch (err) {
 				offlineTip.textContent = err.message || '提交失败';
 				offlineTip.classList.remove('hidden');
 			}
 		});
+
+		async function loadMine() {
+			try {
+				const res = await fetch(`${API_BASE}/merchant/goods`, {
+					headers: { 'Authorization': `Bearer ${token}` }
+				});
+				const data = await res.json();
+				if (!res.ok) throw new Error(data.error || '加载失败');
+				renderMine(data.items || []);
+			} catch (err) {
+				mineEmpty.textContent = err.message || '加载失败';
+				mineEmpty.classList.remove('hidden');
+			}
+		}
+
+		function renderMine(items) {
+			mineList.innerHTML = '';
+			if (!items.length) {
+				mineEmpty.classList.remove('hidden');
+				return;
+			}
+			mineEmpty.classList.add('hidden');
+			items.forEach(item => {
+				const card = document.createElement('div');
+				card.className = 'product';
+				card.innerHTML = `
+					<div class="product-img">🏷️</div>
+					<div class="product-info">
+						<h4>${item.name || '未命名商品'} (ID: ${item.id})</h4>
+						<p>库存：${item.count ?? 0}</p>
+						<div class="price">价值：${item.value ?? 0} 积分</div>
+					</div>
+				`;
+				mineList.appendChild(card);
+			});
+		}
+
+		loadMine();
 	</script>
 </body>
 
