@@ -1,13 +1,118 @@
 <!DOCTYPE html>
-<html lang="zh">
+<html lang="zh-CN">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>碳中和·绿色出行积分系统</title>
+  <style>
+    body {
+      font-family: "Segoe UI", system-ui, sans-serif;
+      background-color: #f8fff8;
+      margin: 0;
+      padding: 0;
+      color: #333;
+    }
+    .container {
+      max-width: 800px;
+      margin: 40px auto;
+      padding: 20px;
+    }
+    header {
+      text-align: center;
+      margin-bottom: 40px;
+    }
+    h1 {
+      color: #2e7d32;
+      font-size: 2.2em;
+      margin-bottom: 10px;
+    }
+    .subtitle {
+      color: #555;
+      font-size: 1.1em;
+    }
+    .cards {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 20px;
+      justify-content: center;
+    }
+    .card {
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+      padding: 24px;
+      width: 220px;
+      text-align: center;
+      transition: transform 0.2s;
+    }
+    .card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 6px 16px rgba(0,0,0,0.12);
+    }
+    .card h2 {
+      margin: 12px 0;
+      color: #2e7d32;
+      font-size: 1.3em;
+    }
+    .card a {
+      display: inline-block;
+      margin-top: 12px;
+      padding: 8px 16px;
+      background-color: #e8f5e9;
+      color: #2e7d32;
+      text-decoration: none;
+      border-radius: 6px;
+      font-weight: bold;
+    }
+    .card a:hover {
+      background-color: #c8e6c9;
+    }
+    footer {
+      text-align: center;
+      margin-top: 50px;
+      color: #777;
+      font-size: 0.9em;
+    }
+    .eco-badge {
+      font-size: 2em;
+      margin-bottom: 10px;
+    }
+  </style>
 </head>
 <body>
-    <a href="../user.html">user</a>
-    <a href="../admin-login.html">admin</a>
-    <a href="../merchant-auth.html">shop</a>
+  <div class="container">
+    <header>
+      <div class="eco-badge">🌱</div>
+      <h1>碳中和城市绿色出行积分系统</h1>
+      <p class="subtitle">助力低碳生活，共建绿色未来</p>
+    </header>
+
+    <div class="cards">
+      <div class="card">
+        <div>👤</div>
+        <h2>用户端</h2>
+        <p>上报行程、查看积分、兑换商品</p>
+        <a href="./user.html">进入用户中心</a>
+      </div>
+
+      <div class="card">
+        <div>🏪</div>
+        <h2>商户端</h2>
+        <p>商品上架、库存管理、审核状态</p>
+        <a href="./merchant-auth.html">商户登录</a>
+      </div>
+
+      <div class="card">
+        <div>🛡️</div>
+        <h2>管理端</h2>
+        <p>审核商品、管理用户、系统配置</p>
+        <a href="./admin-login.html">管理员登录</a>
+      </div>
+    </div>
+
+    <footer>
+      © 2025 绿行积分系统 | 助力碳中和，共建绿色城市
+    </footer>
+  </div>
 </body>
 </html>

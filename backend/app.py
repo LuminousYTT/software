@@ -6,6 +6,7 @@ import pymysql
 from pymysql.cursors import DictCursor
 from contextlib import contextmanager
 from datetime import datetime
+from flask import send_from_directory
 
 # 将上一级目录作为静态文件根目录，直接提供 user.html 等前端文件
 app = Flask(__name__, static_folder="..", static_url_path="")
@@ -691,11 +692,19 @@ def logout():
     return jsonify({"success": True})
 
 
+@app.route('/')
+def serve_index():
+    # 返回上级目录中的 index.html
+    return send_from_directory(os.path.join(app.root_path, ".."), 'index.html')
+
+
+
 if __name__ == "__main__":
     # 启动时确保表已创建（根据环境变量可选创建数据库）
     try:
         ensure_database_and_tables()
         migrate_points_table()
+        serve_index()
     except Exception as e:
         print(f"[WARN] 初始化数据库/数据表时发生错误: {e}")
     app.run(host="0.0.0.0", port=5000, debug=True)
